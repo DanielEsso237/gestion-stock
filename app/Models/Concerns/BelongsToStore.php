@@ -1,3 +1,9 @@
+<?php
+
+namespace App\Models\Concerns;
+
+use App\Models\Scopes\StoreScope;
+
 trait BelongsToStore
 {
     protected static function bootBelongsToStore(): void
