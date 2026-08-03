@@ -8,6 +8,7 @@ use Illuminate\View\View;
 use App\Http\Requests\StoreProductRequest;
 use App\Models\Category;
 use Illuminate\Http\RedirectResponse;
+use App\Http\Requests\UpdateProductRequest;
 
 class ProductController extends Controller
 {
@@ -36,6 +37,20 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('status', 'product-created');
     }
 
+    public function edit(Product $product): View
+    {
+        $categories = Category::orderBy('name')->get();
+
+        return view('products.edit', compact('product', 'categories'));
+    }
+
+    public function update(UpdateProductRequest $request, Product $product): RedirectResponse
+    {
+        $product->update($request->validated());
+
+        return redirect()->route('products.index')-> with('status', 'product-updated');
+    }
+
     /**
      * Display the specified resource.
      */
@@ -44,27 +59,16 @@ class ProductController extends Controller
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Product $product)
-    {
-        //
-    }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Product $product)
-    {
-        //
-    }
+
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Product $product)
+    public function destroy(Product $product): RedirectResponse
     {
-        //
+        $product->delete();
+
+        return redirect()->route('products.index')->with('status', 'product-deleted');
     }
 }
