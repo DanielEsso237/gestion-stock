@@ -8,6 +8,17 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+
+                @if (session('status'))
+                    <div class="mb-4 p-3 bg-green-50 text-green-700 text-sm rounded-md">
+                        @switch(session('status'))
+                            @case('product-created') Produit ajouté avec succès. @break
+                            @case('product-updated') Produit mis à jour. @break
+                            @case('product-deleted') Produit supprimé. @break
+                        @endswitch
+                    </div>
+                @endif
+
                 <div class="flex justify-between items-center mb-4">
                     <a href="{{ route('products.create') }}" class="inline-flex items-center px-4 py-2 bg-gray-800 text-white text-xs font-semibold rounded-md">
                         + Ajouter un produit
@@ -35,8 +46,13 @@
                                 <td class="py-2 {{ $product->quantity <= $product->alert_threshold ? 'text-red-600 font-semibold' : '' }}">
                                     {{ $product->quantity }}
                                 </td>
-                                <td class="py-2 text-right">
+                                <td class="py-2 text-right space-x-2">
                                     <a href="{{ route('products.edit', $product) }}" class="text-indigo-600 hover:underline">Modifier</a>
+                                    <form method="POST" action="{{ route('products.destroy', $product) }}" class="inline" onsubmit="return confirm('Supprimer ce produit ?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-600 hover:underline">Supprimer</button>
+                                    </form>
                                 </td>
                             </tr>
                         @empty
