@@ -15,7 +15,17 @@
                             @case('product-created') Produit ajouté avec succès. @break
                             @case('product-updated') Produit mis à jour. @break
                             @case('product-deleted') Produit supprimé. @break
+                            @case('stock-in-recorded') Stock mis à jour. @break
+                            @case('stock-out-recorded') Sortie de stock enregistrée. @break
                         @endswitch
+                    </div>
+                @endif
+
+                @if ($errors->any())
+                    <div class="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-md">
+                        @foreach ($errors->all() as $error)
+                            <div>{{ $error }}</div>
+                        @endforeach
                     </div>
                 @endif
 
@@ -47,12 +57,63 @@
                                     {{ $product->quantity }}
                                 </td>
                                 <td class="py-2 text-right space-x-2">
+                                    <button type="button" class="text-green-600 hover:underline" x-data @click="$dispatch('open-modal', 'stock-in-{{ $product->id }}')">
+                                        + Stock
+                                    </button>
+                                    <button type="button" class="text-orange-600 hover:underline" x-data @click="$dispatch('open-modal', 'stock-out-{{ $product->id }}')">
+                                        − Stock
+                                    </button>
                                     <a href="{{ route('products.edit', $product) }}" class="text-indigo-600 hover:underline">Modifier</a>
                                     <form method="POST" action="{{ route('products.destroy', $product) }}" class="inline" onsubmit="return confirm('Supprimer ce produit ?')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="text-red-600 hover:underline">Supprimer</button>
                                     </form>
+
+                                    <x-modal :name="'stock-in-'.$product->id" focusable>
+                                        <form method="POST" action="{{ route('products.stock-in', $product) }}" class="p-6">
+                                            @csrf
+                                            <h2 class="text-lg font-medium text-gray-900">Réception — {{ $product->name }}</h2>
+
+                                            <div class="mt-4">
+                                                <x-input-label for="quantity_{{ $product->id }}" value="Quantité reçue" />
+                                                <x-text-input id="quantity_{{ $product->id }}" name="quantity" type="number" min="1" class="mt-1 block w-full" required />
+                                            </div>
+
+                                            <div class="mt-4">
+                                                <x-input-label for="reason_{{ $product->id }}" value="Motif (optionnel)" />
+                                                <x-text-input id="reason_{{ $product->id }}" name="reason" type="text" class="mt-1 block w-full" placeholder="Ex: Réception fournisseur X" />
+                                            </div>
+
+                                            <div class="mt-6 flex justify-end gap-3">
+                                                <x-secondary-button x-on:click="$dispatch('close')">Annuler</x-secondary-button>
+                                                <x-primary-button>Enregistrer</x-primary-button>
+                                            </div>
+                                        </form>
+                                    </x-modal>
+
+                                    <x-modal :name="'stock-out-'.$product->id" focusable>
+                                        <form method="POST" action="{{ route('products.stock-out', $product) }}" class="p-6">
+                                            @csrf
+                                            <h2 class="text-lg font-medium text-gray-900">Sortie — {{ $product->name }}</h2>
+                                            <p class="mt-1 text-sm text-gray-500">Stock actuel : {{ $product->quantity }}</p>
+
+                                            <div class="mt-4">
+                                                <x-input-label for="out_quantity_{{ $product->id }}" value="Quantité sortie" />
+                                                <x-text-input id="out_quantity_{{ $product->id }}" name="quantity" type="number" min="1" max="{{ $product->quantity }}" class="mt-1 block w-full" required />
+                                            </div>
+
+                                            <div class="mt-4">
+                                                <x-input-label for="out_reason_{{ $product->id }}" value="Motif (optionnel)" />
+                                                <x-text-input id="out_reason_{{ $product->id }}" name="reason" type="text" class="mt-1 block w-full" placeholder="Ex: Vente, casse, perte" />
+                                            </div>
+
+                                            <div class="mt-6 flex justify-end gap-3">
+                                                <x-secondary-button x-on:click="$dispatch('close')">Annuler</x-secondary-button>
+                                                <x-primary-button>Enregistrer</x-primary-button>
+                                            </div>
+                                        </form>
+                                    </x-modal>
                                 </td>
                             </tr>
                         @empty
