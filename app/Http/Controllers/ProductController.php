@@ -26,6 +26,9 @@ class ProductController extends Controller
                         ->orWhere('sku', 'like', "%{$search}%");
                 });
             })
+            ->when($request->filled('category_id'), function ($query) use ($request) {
+                $query->where('category_id', $request->integer('category_id'));
+            })
             ->latest()
             ->paginate(15);
 
