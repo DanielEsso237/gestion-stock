@@ -33,7 +33,12 @@ class ProductController extends Controller
                 $query->whereColumn('quantity', '<=', 'alert_threshold');
             })
             ->latest()
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
+
+        if ($request->ajax()) {
+            return view('products._results', compact('products'));
+        }
 
         $categories = Category::orderBy('name')->get();
 
