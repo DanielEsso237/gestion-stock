@@ -15,12 +15,34 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-
-    public function index(): View
+    public function index(Request $request): View
     {
-        $products = Product::with('category')->latest()->paginate(15);
+        $products = Product::with('category')
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $search = $request->string('search');
 
-        return view('products.index', compact('products'));
+                $query->where(function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('sku', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->filled('category_id'), function ($query) use ($request) {
+                $query->where('category_id', $request->integer('category_id'));
+            })
+            ->when($request->boolean('low_stock'), function ($query) {
+                $query->whereColumn('quantity', '<=', 'alert_threshold');
+            })
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
+
+        if ($request->ajax()) {
+            return view('products._results', compact('products'));
+        }
+
+        $categories = Category::orderBy('name')->get();
+
+        return view('products.index', compact('products', 'categories'));
     }
 
     public function create(): View
@@ -48,7 +70,7 @@ class ProductController extends Controller
     {
         $product->update($request->validated());
 
-        return redirect()->route('products.index')-> with('status', 'product-updated');
+        return redirect()->route('products.index')->with('status', 'product-updated');
     }
 
     /**
@@ -58,9 +80,6 @@ class ProductController extends Controller
     {
         //
     }
-
-
-
 
     /**
      * Remove the specified resource from storage.
