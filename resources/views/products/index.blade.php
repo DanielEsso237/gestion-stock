@@ -35,6 +35,45 @@
                     </a>
                 </div>
 
+                <form method="GET" action="{{ route('products.index') }}" class="mb-6 flex flex-wrap items-end gap-4">
+                    <div class="flex-1 min-w-[200px]">
+                        <x-input-label for="search" value="Rechercher" />
+                        <x-text-input id="search" name="search" type="text" class="mt-1 block w-full"
+                            value="{{ request('search') }}" placeholder="Nom ou SKU..." />
+                    </div>
+
+                    <div class="min-w-[200px]">
+                        <x-input-label for="category_id" value="Catégorie" />
+                        <select id="category_id" name="category_id"
+                            class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                            <option value="">Toutes les catégories</option>
+                            @foreach ($categories as $category)
+                                <option value="{{ $category->id }}" @selected(request('category_id') == $category->id)>
+                                    {{ $category->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-2 pb-2">
+                        <input type="checkbox" id="low_stock" name="low_stock" value="1"
+                            class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                            @checked(request()->boolean('low_stock')) />
+                        <label for="low_stock" class="text-sm text-gray-700">Stock bas uniquement</label>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-gray-800 text-white text-xs font-semibold rounded-md">
+                            Filtrer
+                        </button>
+                        @if (request()->anyFilled(['search', 'category_id', 'low_stock']))
+                            <a href="{{ route('products.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 text-xs font-semibold rounded-md">
+                                Réinitialiser
+                            </a>
+                        @endif
+                    </div>
+                </form>
+
                 <table class="w-full text-sm text-left">
                     <thead class="text-xs text-gray-500 uppercase border-b">
                         <tr>

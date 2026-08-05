@@ -29,10 +29,15 @@ class ProductController extends Controller
             ->when($request->filled('category_id'), function ($query) use ($request) {
                 $query->where('category_id', $request->integer('category_id'));
             })
+            ->when($request->boolean('low_stock'), function ($query) {
+                $query->whereColumn('quantity', '<=', 'alert_threshold');
+            })
             ->latest()
             ->paginate(15);
 
-        return view('products.index', compact('products'));
+        $categories = Category::orderBy('name')->get();
+
+        return view('products.index', compact('products', 'categories'));
     }
 
     public function create(): View
