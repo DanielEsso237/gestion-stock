@@ -15,10 +15,19 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-
-    public function index(): View
+    public function index(Request $request): View
     {
-        $products = Product::with('category')->latest()->paginate(15);
+        $products = Product::with('category')
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $search = $request->string('search');
+
+                $query->where(function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('sku', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->paginate(15);
 
         return view('products.index', compact('products'));
     }
@@ -48,7 +57,7 @@ class ProductController extends Controller
     {
         $product->update($request->validated());
 
-        return redirect()->route('products.index')-> with('status', 'product-updated');
+        return redirect()->route('products.index')->with('status', 'product-updated');
     }
 
     /**
@@ -58,9 +67,6 @@ class ProductController extends Controller
     {
         //
     }
-
-
-
 
     /**
      * Remove the specified resource from storage.
